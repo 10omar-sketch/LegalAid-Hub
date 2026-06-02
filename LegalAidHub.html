@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LegalAid Hub – Free Legal Help for Everyone</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy: #0a1628;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --cream: #f5f0e8;
+    --white: #ffffff;
+    --slate: #4a5568;
+    --red: #c0392b;
+    --green: #1a7a4a;
+    --card-bg: #0f2040;
+    --border: rgba(201,168,76,0.25);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--navy); color:var(--white); overflow-x:hidden; }
+
+  /* ── SCREEN SYSTEM ── */
+  .screen { display:none; min-height:100vh; }
+  .screen.active { display:flex; flex-direction:column; }
+
+  /* ── WELCOME SCREEN ── */
+  #s-welcome {
+    background: linear-gradient(135deg, #0a1628 0%, #0f2040 50%, #071020 100%);
+    align-items:center; justify-content:center; text-align:center; padding:40px 20px;
+    position:relative; overflow:hidden;
+  }
+  #s-welcome::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .scales-icon { font-size:64px; margin-bottom:20px; animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .welcome-badge {
+    display:inline-block; background:rgba(201,168,76,0.15); border:1px solid var(--border);
+    color:var(--gold); font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+    padding:6px 18px; border-radius:50px; margin-bottom:24px;
+  }
+  h1.main-title {
+    font-family:'Playfair Display',serif; font-size:clamp(36px,6vw,72px); font-weight:900;
+    line-height:1.05; margin-bottom:16px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--gold-light) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .tagline { font-size:18px; color:rgba(255,255,255,0.65); max-width:540px; line-height:1.7; margin-bottom:12px; }
+  .disclaimer-box {
+    background:rgba(201,168,76,0.08); border:1px solid var(--border); border-radius:12px;
+    padding:16px 24px; max-width:560px; margin:20px auto 36px;
+    font-size:13px; color:rgba(255,255,255,0.55); line-height:1.6;
+  }
+  .disclaimer-box strong { color:var(--gold); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    color:var(--navy); font-weight:700; font-size:16px; padding:16px 44px;
+    border:none; border-radius:50px; cursor:pointer; transition:all 0.3s;
+    box-shadow:0 8px 32px rgba(201,168,76,0.3); letter-spacing:0.5px;
+  }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(201,168,76,0.45); }
+  .btn-secondary {
+    background:transparent; color:var(--gold); font-weight:600; font-size:15px;
+    padding:14px 40px; border:1.5px solid var(--border); border-radius:50px;
+    cursor:pointer; transition:all 0.3s; margin-left:12px;
+  }
+  .btn-secondary:hover { background:rgba(201,168,76,0.08); border-color:var(--gold); }
+  .stats-row {
+    display:flex; gap:40px; margin-top:48px; flex-wrap:wrap; justify-content:center;
+  }
+  .stat { text-align:center; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:32px; color:var(--gold); font-weight:700; }
+  .stat-lbl { font-size:12px; color:rgba(255,255,255,0.5); letter-spacing:1px; text-transform:uppercase; }
+
+  /* ── AUTH SCREEN ── */
+  #s-auth {
+    background: linear-gradient(135deg, #071020 0%, #0a1628 100%);
+    align-items:center; justify-content:center; padding:40px 20px;
+  }
+  .auth-card {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:20px;
+    padding:44px 48px; width:100%; max-width:440px; box-shadow:0 24px 80px rgba(0,0,0,0.5);
+  }
+  .auth-logo { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); margin-bottom:28px; text-align:center; }
+  .auth-tabs { display:flex; background:rgba(255,255,255,0.05); border-radius:10px; padding:4px; margin-bottom:28px; }
+  .auth-tab {
+    flex:1; padding:10px; text-align:center; border-radius:8px; cursor:pointer;
+    font-size:14px; font-weight:600; transition:all 0.25s; color:rgba(255,255,255,0.5);
+  }
+  .auth-tab.active { background:var(--gold); color:var(--navy); }
+  .form-group { margin-bottom:18px; }
+  .form-group label { display:block; font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:7px; font-weight:500; }
+  .form-group input {
+    width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px; padding:13px 16px; color:var(--white); font-size:15px;
+    font-family:'DM Sans',sans-serif; transition:border 0.25s; outline:none;
+  }
+  .form-group input:focus { border-color:var(--gold); background:rgba(201,168,76,0.05); }
+  .form-group input::placeholder { color:rgba(255,255,255,0.25); }
+  .btn-full { width:100%; padding:14px; margin-top:8px; }
+  .auth-note { font-size:12px; color:rgba(255,255,255,0.35); text-align:center; margin-top:16px; line-height:1.6; }
+  #auth-error { color:#e74c3c; font-size:13px; text-align:center; margin-top:10px; min-height:18px; }
+
+  /* ── STEP SCREENS (language, country, state) ── */
+  .step-screen {
+    background: linear-gradient(160deg, #071020 0%, #0a1628 100%);
+    align-items:center; justify-content:center; padding:40px 20px; min-height:100vh;
+  }
+  .step-card {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:20px;
+    padding:40px; width:100%; max-width:560px; box-shadow:0 24px 80px rgba(0,0,0,0.5);
+  }
+  .step-header { text-align:center; margin-bottom:32px; }
+  .step-num { font-size:12px; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+  .step-title { font-family:'Playfair Display',serif; font-size:28px; margin-bottom:8px; }
+  .step-sub { font-size:14px; color:rgba(255,255,255,0.5); }
+  .option-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-height:360px; overflow-y:auto; margin-bottom:28px; }
+  .option-grid::-webkit-scrollbar { width:4px; }
+  .option-grid::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .opt-btn {
+    background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:14px 12px; cursor:pointer; transition:all 0.2s;
+    color:var(--white); font-size:14px; font-weight:500; text-align:left;
+    display:flex; align-items:center; gap:10px;
+  }
+  .opt-btn:hover, .opt-btn.selected {
+    background:rgba(201,168,76,0.12); border-color:var(--gold); color:var(--gold-light);
+  }
+  .opt-flag { font-size:22px; }
+  .search-input {
+    width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px; padding:12px 16px; color:var(--white); font-size:14px;
+    font-family:'DM Sans',sans-serif; outline:none; margin-bottom:16px;
+  }
+  .search-input:focus { border-color:var(--gold); }
+  .search-input::placeholder { color:rgba(255,255,255,0.3); }
+  .btn-row { display:flex; gap:12px; justify-content:flex-end; }
+
+  /* ── MAIN APP ── */
+  #s-app { background:#071020; flex-direction:column; }
+  .app-header {
+    background:var(--card-bg); border-bottom:1px solid var(--border);
+    padding:16px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+  }
+  .app-logo { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); }
+  .user-info { font-size:13px; color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:16px; }
+  .badge-location {
+    background:rgba(201,168,76,0.1); border:1px solid var(--border); padding:4px 12px;
+    border-radius:20px; font-size:12px; color:var(--gold);
+  }
+  .btn-logout { background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:13px; }
+  .btn-logout:hover { color:var(--white); }
+  .app-body { display:flex; flex:1; overflow:hidden; }
+  .sidebar {
+    width:260px; background:var(--card-bg); border-right:1px solid var(--border);
+    padding:24px 0; flex-shrink:0; overflow-y:auto;
+  }
+  .sidebar-title { font-size:11px; color:rgba(255,255,255,0.35); letter-spacing:1.5px; text-transform:uppercase; padding:0 20px; margin-bottom:12px; }
+  .nav-item {
+    display:flex; align-items:center; gap:12px; padding:12px 20px; cursor:pointer;
+    transition:all 0.2s; font-size:14px; color:rgba(255,255,255,0.6); border-left:3px solid transparent;
+  }
+  .nav-item:hover { background:rgba(201,168,76,0.06); color:var(--white); }
+  .nav-item.active { background:rgba(201,168,76,0.1); color:var(--gold); border-left-color:var(--gold); }
+  .nav-icon { font-size:18px; width:24px; text-align:center; }
+  .main-content { flex:1; padding:32px; overflow-y:auto; }
+
+  /* ── TOPIC VIEW ── */
+  .topic-hero {
+    background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(10,22,40,0) 100%);
+    border:1px solid var(--border); border-radius:16px; padding:28px 32px; margin-bottom:28px;
+  }
+  .topic-hero h2 { font-family:'Playfair Display',serif; font-size:28px; margin-bottom:8px; }
+  .topic-hero p { color:rgba(255,255,255,0.6); font-size:15px; line-height:1.7; }
+  .law-card {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+    padding:24px 28px; margin-bottom:16px; position:relative; overflow:hidden;
+    transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;
+  }
+  .law-card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+  .law-card::before {
+    content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+  }
+  .law-card.protect::before { background:var(--green); }
+  .law-card.right::before { background:#3498db; }
+  .law-card.warning::before { background:#e67e22; }
+  .law-card.illegal::before { background:var(--red); }
+  .law-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:12px; }
+  .law-card-title { font-family:'Playfair Display',serif; font-size:18px; line-height:1.3; }
+  .verdict {
+    display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:50px;
+    font-size:12px; font-weight:700; letter-spacing:0.5px; white-space:nowrap; flex-shrink:0;
+  }
+  .verdict.yes { background:rgba(26,122,74,0.2); color:#4ade80; border:1px solid rgba(74,222,128,0.3); }
+  .verdict.no { background:rgba(192,57,43,0.2); color:#f87171; border:1px solid rgba(248,113,113,0.3); }
+  .verdict.depends { background:rgba(230,126,34,0.2); color:#fb923c; border:1px solid rgba(251,146,60,0.3); }
+  .law-card-body { font-size:14px; color:rgba(255,255,255,0.65); line-height:1.75; }
+  .law-card-detail {
+    display:none; margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .law-card.expanded .law-card-detail { display:block; }
+  .law-ref {
+    display:inline-block; background:rgba(201,168,76,0.1); border:1px solid var(--border);
+    color:var(--gold); font-size:12px; padding:4px 10px; border-radius:6px; margin-top:10px;
+  }
+  .action-steps { margin-top:12px; }
+  .action-steps h4 { font-size:13px; color:var(--gold); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; }
+  .step-item {
+    display:flex; gap:10px; margin-bottom:8px; font-size:13px; color:rgba(255,255,255,0.65);
+  }
+  .step-num-circle {
+    background:var(--gold); color:var(--navy); width:20px; height:20px; border-radius:50%;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .hotline-box {
+    background:rgba(26,122,74,0.1); border:1px solid rgba(74,222,128,0.2); border-radius:10px;
+    padding:14px 18px; margin-top:14px; font-size:13px; color:rgba(255,255,255,0.7);
+  }
+  .hotline-box strong { color:#4ade80; display:block; margin-bottom:4px; }
+  .ask-ai-btn {
+    background: linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));
+    border:1px solid var(--border); border-radius:12px; padding:16px 20px;
+    display:flex; align-items:center; gap:12px; cursor:pointer; margin-top:24px;
+    transition:all 0.25s; width:100%;
+  }
+  .ask-ai-btn:hover { background:rgba(201,168,76,0.2); }
+  .ask-ai-btn span { font-size:22px; }
+  .ask-ai-text { text-align:left; }
+  .ask-ai-text strong { display:block; font-size:15px; color:var(--gold); }
+  .ask-ai-text small { color:rgba(255,255,255,0.45); font-size:13px; }
+  .ai-chat-box {
+    display:none; margin-top:16px; background:rgba(0,0,0,0.3); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+  }
+  .ai-chat-box.open { display:block; }
+  .ai-msgs { padding:20px; max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+  .msg { padding:12px 16px; border-radius:10px; font-size:14px; line-height:1.6; max-width:90%; }
+  .msg.user { background:rgba(201,168,76,0.15); color:var(--cream); align-self:flex-end; }
+  .msg.ai { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.85); align-self:flex-start; }
+  .msg.ai.loading { opacity:0.6; }
+  .ai-input-row { display:flex; border-top:1px solid var(--border); }
+  .ai-input {
+    flex:1; background:transparent; border:none; padding:14px 18px; color:var(--white);
+    font-family:'DM Sans',sans-serif; font-size:14px; outline:none;
+  }
+  .ai-input::placeholder { color:rgba(255,255,255,0.25); }
+  .ai-send {
+    background:var(--gold); color:var(--navy); border:none; padding:14px 20px;
+    cursor:pointer; font-weight:700; font-size:15px; transition:background 0.2s;
+  }
+  .ai-send:hover { background:var(--gold-light); }
+  .topic-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+  .topic-card {
+    background:var(--card-bg); border:1.5px solid var(--border); border-radius:14px;
+    padding:22px 20px; cursor:pointer; transition:all 0.25s; text-align:center;
+  }
+  .topic-card:hover { background:rgba(201,168,76,0.1); border-color:var(--gold); transform:translateY(-3px); }
+  .topic-card-icon { font-size:36px; margin-bottom:12px; }
+  .topic-card-name { font-weight:600; font-size:15px; margin-bottom:4px; }
+  .topic-card-count { font-size:12px; color:rgba(255,255,255,0.4); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar { display:flex; gap:8px; justify-content:center; margin-bottom:28px; }
+  .prog-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); transition:all 0.3s; }
+  .prog-dot.done { background:var(--gold); }
+  .prog-dot.active { background:var(--gold); width:24px; border-radius:4px; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:700px) {
+    .app-body { flex-direction:column; }
+    .sidebar { width:100%; border-right:none; border-bottom:1px solid var(--border); padding:12px 0; }
+    .nav-item { padding:10px 16px; font-size:13px; }
+    .auth-card { padding:32px 24px; }
+    .option-grid { grid-template-columns:1fr; }
+    .main-content { padding:20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ WELCOME ══════════════════════════════════ -->
+<div id="s-welcome" class="screen active">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
+    <div class="scales-icon">⚖️</div>
+    <div class="welcome-badge">100% Free · No Hidden Fees · Worldwide</div>
+    <h1 class="main-title">LegalAid Hub</h1>
+    <p class="tagline">This site is used to provide <strong style="color:var(--gold)">free legal guidance</strong> to everyday people — tenants, workers, consumers, and families — who need to understand their rights without paying a lawyer.</p>
+    <div class="disclaimer-box">
+      <strong>⚠️ Important Notice:</strong> The information on this platform is general legal information only, not formal legal advice. For complex situations, please also consult a licensed attorney in your jurisdiction.
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
+      <button class="btn-primary" onclick="go('s-auth')">Get Started — It's Free →</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">180+</div><div class="stat-lbl">Countries</div></div>
+      <div class="stat"><div class="stat-num">60+</div><div class="stat-lbl">Legal Topics</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Free Forever</div></div>
+      <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">Languages</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ AUTH ══════════════════════════════════ -->
+<div id="s-auth" class="screen">
+  <div style="width:100%;display:flex;align-items:center;justify-content:center;flex:1;padding:40px 20px">
+    <div class="auth-card">
+      <div class="auth-logo">⚖️ LegalAid Hub</div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuth('login')">Log In</div>
+        <div class="auth-tab" id="tab-signup" onclick="switchAuth('signup')">Sign Up</div>
+      </div>
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-group"><label>Email Address</label><input type="email" id="li-email" placeholder="you@email.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••"/></div>
+        <button class="btn-primary btn-full" onclick="doLogin()">Log In</button>
+      </div>
+      <!-- SIGNUP -->
+      <div id="form-signup" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="su-name" placeholder="Jane Smith"/></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="su-email" placeholder="you@email.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="su-pass" placeholder="Create a password"/></div>
+        <button class="btn-primary btn-full" onclick="doSignup()">Create Free Account</button>
+      </div>
+      <div id="auth-error"></div>
+      <p class="auth-note">🔒 Your data is never shared or sold. By continuing you agree to use this platform for informational purposes only.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ LANGUAGE ══════════════════════════════════ -->
+<div id="s-lang" class="screen step-screen">
+  <div class="step-card">
+    <div class="progress-bar">
+      <div class="prog-dot done"></div><div class="prog-dot active"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+    </div>
+    <div class="step-header">
+      <div class="step-num">Step 1 of 3</div>
+      <h2 class="step-title">Choose Your Language</h2>
+      <p class="step-sub">Select the language you want to use</p>
+    </div>
+    <input class="search-input" placeholder="🔍 Search language..." oninput="filterOpts('lang-grid',this.value)"/>
+    <div class="option-grid" id="lang-grid"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go('s-auth')">← Back</button>
+      <button class="btn-primary" onclick="nextFromLang()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ COUNTRY ══════════════════════════════════ -->
+<div id="s-country" class="screen step-screen">
+  <div class="step-card">
+    <div class="progress-bar">
+      <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot active"></div><div class="prog-dot"></div>
+    </div>
+    <div class="step-header">
+      <div class="step-num">Step 2 of 3</div>
+      <h2 class="step-title">Select Your Country</h2>
+      <p class="step-sub">Laws vary by country — choose yours for accurate help</p>
+    </div>
+    <input class="search-input" placeholder="🔍 Search country..." oninput="filterOpts('country-grid',this.value)"/>
+    <div class="option-grid" id="country-grid"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go('s-lang')">← Back</button>
+      <button class="btn-primary" onclick="nextFromCountry()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ STATE ══════════════════════════════════ -->
+<div id="s-state" class="screen step-screen">
+  <div class="step-card">
+    <div class="progress-bar">
+      <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot active"></div>
+    </div>
+    <div class="step-header">
+      <div class="step-num">Step 3 of 3</div>
+      <h2 class="step-title">Select Your State / Province</h2>
+      <p class="step-sub">Your country has state-level laws — choose your region</p>
+    </div>
+    <input class="search-input" placeholder="🔍 Search state..." oninput="filterOpts('state-grid',this.value)"/>
+    <div class="option-grid" id="state-grid"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go('s-country')">← Back</button>
+      <button class="btn-primary" onclick="go('s-app');loadApp()">Enter LegalAid Hub →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ APP ══════════════════════════════════ -->
+<div id="s-app" class="screen">
+  <div class="app-header">
+    <div class="app-logo">⚖️ LegalAid Hub</div>
+    <div class="user-info">
+      <span class="badge-location" id="loc-badge">🌍 Loading…</span>
+      <span id="user-name-display"></span>
+      <button class="btn-logout" onclick="go('s-welcome')">Log Out</button>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="sidebar">
+      <div class="sidebar-title">Legal Topics</div>
+      <div id="nav-items"></div>
+    </div>
+    <div class="main-content" id="main-content">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════ STATE ══════════════════════════════════ */
+const APP = {
+  user: null,
+  lang: null,
+  country: null,
+  state: null,
+  topic: null
+};
+
+/* ══════════════════════════════════ NAV ══════════════════════════════════ */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ══════════════════════════════════ AUTH ══════════════════════════════════ */
+const USERS = JSON.parse(localStorage.getItem('lah_users')||'{}');
+
+function switchAuth(mode){
+  document.getElementById('form-login').style.display = mode==='login'?'block':'none';
+  document.getElementById('form-signup').style.display = mode==='signup'?'block':'none';
+  document.getElementById('tab-login').className='auth-tab'+(mode==='login'?' active':'');
+  document.getElementById('tab-signup').className='auth-tab'+(mode==='signup'?' active':'');
+  document.getElementById('auth-error').textContent='';
+}
+
+function doLogin(){
+  const e=document.getElementById('li-email').value.trim();
+  const p=document.getElementById('li-pass').value;
+  const err=document.getElementById('auth-error');
+  if(!e||!p){err.textContent='Please fill all fields.';return;}
+  if(USERS[e]&&USERS[e].pass===p){
+    APP.user=USERS[e]; go('s-lang'); buildLangGrid();
+  } else {
+    err.textContent='Invalid email or password.';
+  }
+}
+
+function doSignup(){
+  const n=document.getElementById('su-name').value.trim();
+  const e=document.getElementById('su-email').value.trim();
+  const p=document.getElementById('su-pass').value;
+  const err=document.getElementById('auth-error');
+  if(!n||!e||!p){err.textContent='Please fill all fields.';return;}
+  if(p.length<6){err.textContent='Password must be at least 6 characters.';return;}
+  if(USERS[e]){err.textContent='Email already registered.';return;}
+  USERS[e]={name:n,email:e,pass:p};
+  localStorage.setItem('lah_users',JSON.stringify(USERS));
+  APP.user={name:n,email:e};
+  go('s-lang'); buildLangGrid();
+}
+
+/* ══════════════════════════════════ LANGUAGES ══════════════════════════════════ */
+const LANGUAGES=[
+  {code:'en',name:'English',flag:'🇬🇧'},
+  {code:'es',name:'Español',flag:'🇪🇸'},
+  {code:'fr',name:'Français',flag:'🇫🇷'},
+  {code:'ar',name:'العربية',flag:'🇸🇦'},
+  {code:'zh',name:'中文',flag:'🇨🇳'},
+  {code:'pt',name:'Português',flag:'🇧🇷'},
+  {code:'de',name:'Deutsch',flag:'🇩🇪'},
+  {code:'ru',name:'Русский',flag:'🇷🇺'},
+  {code:'hi',name:'हिन्दी',flag:'🇮🇳'},
+  {code:'it',name:'Italiano',flag:'🇮🇹'},
+  {code:'ja',name:'日本語',flag:'🇯🇵'},
+  {code:'ko',name:'한국어',flag:'🇰🇷'},
+  {code:'nl',name:'Nederlands',flag:'🇳🇱'},
+  {code:'pl',name:'Polski',flag:'🇵🇱'},
+  {code:'tr',name:'Türkçe',flag:'🇹🇷'},
+  {code:'sv',name:'Svenska',flag:'🇸🇪'},
+  {code:'da',name:'Dansk',flag:'🇩🇰'},
+  {code:'fi',name:'Suomi',flag:'🇫🇮'},
+  {code:'no',name:'Norsk',flag:'🇳🇴'},
+  {code:'id',name:'Bahasa Indonesia',flag:'🇮🇩'},
+  {code:'ms',name:'Bahasa Melayu',flag:'🇲🇾'},
+  {code:'th',name:'ภาษาไทย',flag:'🇹🇭'},
+  {code:'vi',name:'Tiếng Việt',flag:'🇻🇳'},
+  {code:'ur',name:'اردو',flag:'🇵🇰'},
+  {code:'bn',name:'বাংলা',flag:'🇧🇩'},
+  {code:'sw',name:'Kiswahili',flag:'🇰🇪'},
+  {code:'am',name:'አማርኛ',flag:'🇪🇹'},
+  {code:'ha',name:'Hausa',flag:'🇳🇬'},
+  {code:'yo',name:'Yorùbá',flag:'🇳🇬'},
+  {code:'ro',name:'Română',flag:'🇷🇴'},
+];
+
+function buildLangGrid(){
+  const g=document.getElementById('lang-grid');
+  g.innerHTML=LANGUAGES.map(l=>`
+    <button class="opt-btn" data-val="${l.code}" data-label="${l.name}" onclick="selectOpt(this,'lang-grid')">
+      <span class="opt-flag">${l.flag}</span> ${l.name}
+    </button>`).join('');
+}
+function nextFromLang(){
+  const s=document.querySelector('#lang-grid .selected');
+  if(!s){alert('Please select a language.');return;}
+  APP.lang=s.dataset.label;
+  buildCountryGrid();
+  go('s-country');
+}
+
+/* ══════════════════════════════════ COUNTRIES ══════════════════════════════════ */
+const COUNTRIES=[
+  {code:'US',name:'United States',flag:'🇺🇸',hasStates:true},
+  {code:'CA',name:'Canada',flag:'🇨🇦',hasStates:true},
+  {code:'AU',name:'Australia',flag:'🇦🇺',hasStates:true},
+  {code:'GB',name:'United Kingdom',flag:'🇬🇧',hasStates:false},
+  {code:'DE',name:'Germany',flag:'🇩🇪',hasStates:true},
+  {code:'FR',name:'France',flag:'🇫🇷',hasStates:false},
+  {code:'ES',name:'Spain',flag:'🇪🇸',hasStates:true},
+  {code:'IT',name:'Italy',flag:'🇮🇹',hasStates:true},
+  {code:'NL',name:'Netherlands',flag:'🇳🇱',hasStates:false},
+  {code:'BE',name:'Belgium',flag:'🇧🇪',hasStates:false},
+  {code:'CH',name:'Switzerland',flag:'🇨🇭',hasStates:true},
+  {code:'AT',name:'Austria',flag:'🇦🇹',hasStates:false},
+  {code:'SE',name:'Sweden',flag:'🇸🇪',hasStates:false},
+  {code:'NO',name:'Norway',flag:'🇳🇴',hasStates:false},
+  {code:'DK',name:'Denmark',flag:'🇩🇰',hasStates:false},
+  {code:'FI',name:'Finland',flag:'🇫🇮',hasStates:false},
+  {code:'PL',name:'Poland',flag:'🇵🇱',hasStates:false},
+  {code:'RO',name:'Romania',flag:'🇷🇴',hasStates:false},
+  {code:'IN',name:'India',flag:'🇮🇳',hasStates:true},
+  {code:'PK',name:'Pakistan',flag:'🇵🇰',hasStates:true},
+  {code:'BD',name:'Bangladesh',flag:'🇧🇩',hasStates:false},
+  {code:'LK',name:'Sri Lanka',flag:'🇱🇰',hasStates:false},
+  {code:'JP',name:'Japan',flag:'🇯🇵',hasStates:false},
+  {code:'KR',name:'South Korea',flag:'🇰🇷',hasStates:false},
+  {code:'CN',name:'China',flag:'🇨🇳',hasStates:true},
+  {code:'ID',name:'Indonesia',flag:'🇮🇩',hasStates:true},
+  {code:'MY',name:'Malaysia',flag:'🇲🇾',hasStates:true},
+  {code:'PH',name:'Philippines',flag:'🇵🇭',hasStates:false},
+  {code:'TH',name:'Thailand',flag:'🇹🇭',hasStates:false},
+  {code:'VN',name:'Vietnam',flag:'🇻🇳',hasStates:false},
+  {code:'SG',name:'Singapore',flag:'🇸🇬',hasStates:false},
+  {code:'NZ',name:'New Zealand',flag:'🇳🇿',hasStates:false},
+  {code:'ZA',name:'South Africa',flag:'🇿🇦',hasStates:true},
+  {code:'NG',name:'Nigeria',flag:'🇳🇬',hasStates:true},
+  {code:'KE',name:'Kenya',flag:'🇰🇪',hasStates:false},
+  {code:'GH',name:'Ghana',flag:'🇬🇭',hasStates:false},
+  {code:'ET',name:'Ethiopia',flag:'🇪🇹',hasStates:false},
+  {code:'TZ',name:'Tanzania',flag:'🇹🇿',hasStates:false},
+  {code:'UG',name:'Uganda',flag:'🇺🇬',hasStates:false},
+  {code:'EG',name:'Egypt',flag:'🇪🇬',hasStates:false},
+  {code:'MA',name:'Morocco',flag:'🇲🇦',hasStates:false},
+  {code:'DZ',name:'Algeria',flag:'🇩🇿',hasStates:false},
+  {code:'TN',name:'Tunisia',flag:'🇹🇳',hasStates:false},
+  {code:'SA',name:'Saudi Arabia',flag:'🇸🇦',hasStates:false},
+  {code:'AE',name:'UAE',flag:'🇦🇪',hasStates:false},
+  {code:'QA',name:'Qatar',flag:'🇶🇦',hasStates:false},
+  {code:'KW',name:'Kuwait',flag:'🇰🇼',hasStates:false},
+  {code:'JO',name:'Jordan',flag:'🇯🇴',hasStates:false},
+  {code:'LB',name:'Lebanon',flag:'🇱🇧',hasStates:false},
+  {code:'TR',name:'Turkey',flag:'🇹🇷',hasStates:false},
+  {code:'IR',name:'Iran',flag:'🇮🇷',hasStates:false},
+  {code:'IQ',name:'Iraq',flag:'🇮🇶',hasStates:false},
+  {code:'BR',name:'Brazil',flag:'🇧🇷',hasStates:true},
+  {code:'MX',name:'Mexico',flag:'🇲🇽',hasStates:true},
+  {code:'AR',name:'Argentina',flag:'🇦🇷',hasStates:true},
+  {code:'CO',name:'Colombia',flag:'🇨🇴',hasStates:false},
+  {code:'CL',name:'Chile',flag:'🇨🇱',hasStates:false},
+  {code:'PE',name:'Peru',flag:'🇵🇪',hasStates:false},
+  {code:'VE',name:'Venezuela',flag:'🇻🇪',hasStates:true},
+  {code:'EC',name:'Ecuador',flag:'🇪🇨',hasStates:false},
+  {code:'BO',name:'Bolivia',flag:'🇧🇴',hasStates:false},
+  {code:'RU',name:'Russia',flag:'🇷🇺',hasStates:true},
+  {code:'UA',name:'Ukraine',flag:'🇺🇦',hasStates:false},
+];
+
+function buildCountryGrid(){
+  const g=document.getElementById('country-grid');
+  g.innerHTML=COUNTRIES.map(c=>`
+    <button class="opt-btn" data-val="${c.code}" data-label="${c.name}" data-has-states="${c.hasStates}" onclick="selectOpt(this,'country-grid')">
+      <span class="opt-flag">${c.flag}</span> ${c.name}
+    </button>`).join('');
+}
+
+function nextFromCountry(){
+  const s=document.querySelector('#country-grid .selected');
+  if(!s){alert('Please select a country.');return;}
+  APP.country=s.dataset.label;
+  APP.countryCode=s.dataset.val;
+  const hasStates=s.dataset.hasStates==='true';
+  if(hasStates){
+    buildStateGrid(s.dataset.val);
+    go('s-state');
+  } else {
+    APP.state=null;
+    go('s-app'); loadApp();
+  }
+}
+
+/* ══════════════════════════════════ STATES ══════════════════════════════════ */
+const STATES={
+  US:['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming','Washington D.C.'],
+  CA:['Alberta','British Columbia','Manitoba','New Brunswick','Newfoundland and Labrador','Nova Scotia','Ontario','Prince Edward Island','Quebec','Saskatchewan'],
+  AU:['Australian Capital Territory','New South Wales','Northern Territory','Queensland','South Australia','Tasmania','Victoria','Western Australia'],
+  DE:['Baden-Württemberg','Bavaria','Berlin','Brandenburg','Bremen','Hamburg','Hesse','Lower Saxony','Mecklenburg-Vorpommern','North Rhine-Westphalia','Rhineland-Palatinate','Saarland','Saxony','Saxony-Anhalt','Schleswig-Holstein','Thuringia'],
+  IN:['Andhra Pradesh','Assam','Bihar','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal'],
+  PK:['Balochistan','Khyber Pakhtunkhwa','Punjab','Sindh','Azad Kashmir','Gilgit-Baltistan'],
+  BR:['Acre','Alagoas','Amapá','Amazonas','Bahia','Ceará','Distrito Federal','Espírito Santo','Goiás','Maranhão','Mato Grosso','Mato Grosso do Sul','Minas Gerais','Pará','Paraíba','Paraná','Pernambuco','Piauí','Rio de Janeiro','Rio Grande do Norte','Rio Grande do Sul','Rondônia','Roraima','Santa Catarina','São Paulo','Sergipe','Tocantins'],
+  MX:['Aguascalientes','Baja California','Baja California Sur','Campeche','Chiapas','Chihuahua','Ciudad de México','Coahuila','Colima','Durango','Guanajuato','Guerrero','Hidalgo','Jalisco','México','Michoacán','Morelos','Nayarit','Nuevo León','Oaxaca','Puebla','Querétaro','Quintana Roo','San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz','Yucatán','Zacatecas'],
+  ES:['Andalusia','Aragon','Asturias','Balearic Islands','Basque Country','Canary Islands','Cantabria','Castilla-La Mancha','Castile and León','Catalonia','Extremadura','Galicia','La Rioja','Madrid','Murcia','Navarre','Valencia'],
+  ZA:['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'],
+  NG:['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT Abuja','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara'],
+};
+
+function buildStateGrid(code){
+  const states=STATES[code]||['Capital Region','Northern Region','Southern Region','Eastern Region','Western Region','Central Region'];
+  const g=document.getElementById('state-grid');
+  g.innerHTML=states.map(s=>`
+    <button class="opt-btn" data-val="${s}" data-label="${s}" onclick="selectOpt(this,'state-grid')">
+      📍 ${s}
+    </button>`).join('');
+}
+
+/* ══════════════════════════════════ OPTION HELPERS ══════════════════════════════════ */
+function selectOpt(btn,gridId){
+  document.querySelectorAll('#'+gridId+' .opt-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(gridId==='state-grid') APP.state=btn.dataset.label;
+}
+
+function filterOpts(gridId,val){
+  const q=val.toLowerCase();
+  document.querySelectorAll('#'+gridId+' .opt-btn').forEach(b=>{
+    b.style.display=b.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+/* ══════════════════════════════════ LEGAL DATA ══════════════════════════════════ */
+const TOPICS=[
+  {id:'housing',icon:'🏠',name:'Housing & Tenants',count:'12 laws'},
+  {id:'employment',icon:'💼',name:'Employment Rights',count:'10 laws'},
+  {id:'consumer',icon:'🛒',name:'Consumer Protection',count:'8 laws'},
+  {id:'family',icon:'👨‍👩‍👧',name:'Family Law',count:'9 laws'},
+  {id:'immigration',icon:'✈️',name:'Immigration',count:'7 laws'},
+  {id:'debt',icon:'💳',name:'Debt & Credit',count:'6 laws'},
+  {id:'criminal',icon:'⚖️',name:'Criminal Rights',count:'8 laws'},
+  {id:'discrimination',icon:'🤝',name:'Discrimination',count:'7 laws'},
+  {id:'privacy',icon:'🔒',name:'Privacy Rights',count:'5 laws'},
+  {id:'disability',icon:'♿',name:'Disability Rights',count:'6 laws'},
+];
+
+const LAWS={
+  housing:[
+    {
+      type:'illegal',title:'Landlord cannot evict you without a court order',
+      verdict:'no',verdictLabel:'Cannot Evict Without Court',
+      summary:'A landlord CANNOT physically remove you from your home without first getting a court-issued eviction order. Changing locks, removing belongings, or cutting utilities to force you out is ILLEGAL in most countries.',
+      detail:'Known as "self-help eviction," this is prohibited in the US, UK, Canada, Australia, EU countries, and most nations worldwide. Even if you are behind on rent, the landlord must follow a legal process.',
+      ref:'Fair Housing Act (US) · Housing Act 1988 (UK) · Residential Tenancies Act (CA)',
+      steps:['Document everything — keep texts, emails, and photos','Call the police if the landlord attempts forced removal','Contact a local tenants\' rights organization immediately','File an emergency injunction at your local court'],
+      hotline:'🇺🇸 US: HUD Hotline 1-800-669-9777 | 🇬🇧 UK: Shelter 0808 800 4444 | 🇨🇦 CA: Dial 211',
+      type_class:'illegal'
+    },
+    {
+      type:'right',title:'Required notice period before eviction',
+      verdict:'yes',verdictLabel:'You Have This Right',
+      summary:'You are legally entitled to a minimum notice period before you can be asked to leave. This ranges from 24 hours (emergency) to 6+ months depending on country and reason.',
+      detail:'US: typically 30–60 days | UK: Section 21 requires 2 months minimum | Canada: 60–90 days | Australia: 14–90 days | EU: varies by country (30–180 days). Notice must be in writing in most jurisdictions.',
+      ref:'Local Residential Tenancies legislation',
+      steps:['Check your lease for the agreed notice period','Verify the notice is in writing and specifies the legal reason','Research your local minimum notice requirements','If notice is too short, contest it in writing immediately'],
+      hotline:'Search "[your country] tenant rights notice period" for local rules',
+      type_class:'right'
+    },
+    {
+      type:'protect',title:'Right to habitable living conditions',
+      verdict:'yes',verdictLabel:'Protected by Law',
+      summary:'Your landlord is legally required to maintain the property in a livable condition — heat, water, safe structure, no mold or pest infestations. Failure to do so gives you legal remedies.',
+      detail:'In most countries, landlords have a duty of habitability. This includes working heat/cooling, running water, safe electrical systems, no mold or vermin. You may be able to withhold rent or repair-and-deduct in some jurisdictions.',
+      ref:'Implied Warranty of Habitability (US) · Housing Health and Safety Rating System (UK)',
+      steps:['Document issues with photos and written complaints to landlord','Send a formal repair request letter with a deadline','Report to local housing authority or environmental health department','Seek legal advice on rent withholding rights in your area'],
+      hotline:'🇺🇸 US: Local Code Enforcement | 🇬🇧 UK: Local Council Environmental Health',
+      type_class:'protect'
+    },
+    {
+      type:'right',title:'Landlord must give notice before entering',
+      verdict:'yes',verdictLabel:'Your Privacy is Protected',
+      summary:'In almost every country, a landlord must give advance notice (usually 24–48 hours) before entering your home, except in genuine emergencies.',
+      detail:'US: 24 hours in most states | UK: 24 hours written notice | Canada: 24 hours | Australia: 24 hours | Most EU countries: 24–48 hours. Entering without notice may be trespass.',
+      ref:'Landlord-Tenant law by jurisdiction',
+      steps:['Know your local notice requirement','Document any unauthorized entries with timestamps','Send a written warning to the landlord citing the law','File a complaint with the housing authority for repeat violations'],
+      hotline:'Local housing tribunal or tenants board',
+      type_class:'right'
+    },
+    {
+      type:'protect',title:'Security deposit must be returned',
+      verdict:'yes',verdictLabel:'You\'re Owed It Back',
+      summary:'Your security deposit must be returned within a legally set time period after you move out (typically 14–30 days), with an itemized list of any deductions.',
+      detail:'US: 14–30 days depending on state | UK: 10 days from Tenancy Deposit Scheme | Canada: 10–21 days | Australia: 2 weeks. Landlord cannot deduct for normal wear and tear.',
+      ref:'State/Provincial Tenancy Law',
+      steps:['Do a final walkthrough with photos before moving out','Get move-out condition in writing','Send written demand for deposit with deadline','File small claims court if landlord refuses without valid reason'],
+      hotline:'Local small claims court — no lawyer required in most jurisdictions',
+      type_class:'protect'
+    },
+  ],
+  employment:[
+    {
+      type:'protect',title:'Minimum wage laws protect your earnings',
+      verdict:'yes',verdictLabel:'Protected by Law',
+      summary:'You cannot legally be paid below the minimum wage set by your country or state/province. Any employer doing so is breaking the law.',
+      detail:'US: Federal $7.25/hr (many states higher) | UK: £11.44/hr (2024) | Canada: Varies by province ($15–$17.30) | Australia: $23.23 AUD/hr | EU: Set per member state.',
+      ref:'Fair Labor Standards Act (US) · National Minimum Wage Act (UK)',
+      steps:['Calculate if your actual hourly pay meets the minimum','Gather pay stubs and records','File a wage complaint with your labor department','Seek back pay for up to 3 years of underpayment'],
+      hotline:'🇺🇸 US: DOL Wage & Hour 1-866-487-9243 | 🇬🇧 UK: ACAS 0300 123 1100',
+      type_class:'protect'
+    },
+    {
+      type:'illegal',title:'Employer cannot fire you for discriminatory reasons',
+      verdict:'no',verdictLabel:'Illegal Termination',
+      summary:'Firing an employee because of race, gender, religion, age (over 40), disability, national origin, or pregnancy is illegal in most developed countries.',
+      detail:'Protected classes vary by country but generally include race, sex, religion, disability, age. Wrongful termination can result in reinstatement and damages. Burden of proof may be on the employer.',
+      ref:'Title VII Civil Rights Act (US) · Equality Act 2010 (UK) · Canadian Human Rights Act',
+      steps:['Document the circumstances of termination in writing immediately','Gather any evidence of discriminatory comments or patterns','File an EEOC complaint (US) or equivalent within the deadline','Consult an employment lawyer — many work on contingency'],
+      hotline:'🇺🇸 US: EEOC 1-800-669-4000 | 🇬🇧 UK: Equality Advisory Service 0808 800 0082',
+      type_class:'illegal'
+    },
+    {
+      type:'right',title:'Right to overtime pay',
+      verdict:'yes',verdictLabel:'You\'re Owed This',
+      summary:'In most countries, working more than 40 hours per week (or 8 hours/day) entitles you to overtime pay, typically 1.5× your regular wage.',
+      detail:'US: 1.5× pay for 40+ hours/week (FLSA). UK: No automatic right but national minimum must be maintained. Canada: 1.5× after 8 hours/day. Australia: Penalty rates apply.',
+      ref:'Fair Labor Standards Act (US) · Employment Standards Act (CA)',
+      steps:['Track your hours carefully — use a time-tracking app','Review your pay stubs for proper overtime calculation','Raise the issue in writing with HR or payroll','File a wage claim with your labor board if denied'],
+      hotline:'🇺🇸 US: DOL Wage & Hour Division | 🇨🇦 CA: Provincial Labour Standards Board',
+      type_class:'right'
+    },
+  ],
+  consumer:[
+    {
+      type:'protect',title:'Right to refund for defective products',
+      verdict:'yes',verdictLabel:'You\'re Entitled',
+      summary:'If a product is faulty, not as described, or unfit for purpose, you are legally entitled to a refund, replacement, or repair in most countries.',
+      detail:'UK: Consumer Rights Act 2015 — 30 days for full refund. US: Varies by state but FTC covers deceptive practices. EU: 2-year statutory guarantee. Australia: Consumer Law guarantees.',
+      ref:'Consumer Rights Act 2015 (UK) · UCC (US) · Australian Consumer Law',
+      steps:['Stop using the item and document the defect with photos','Return to the store with your receipt','State clearly whether you want a refund, repair, or replacement','Escalate to consumer protection authority if refused'],
+      hotline:'🇬🇧 UK: Citizens Advice 0800 144 8848 | 🇺🇸 US: FTC reportfraud.ftc.gov',
+      type_class:'protect'
+    },
+    {
+      type:'illegal',title:'False advertising is illegal',
+      verdict:'no',verdictLabel:'That\'s Illegal',
+      summary:'Companies cannot advertise products with false claims about price, quality, health benefits, or capabilities. This is a criminal offense in most countries.',
+      detail:'Prohibited under FTC Act (US), Consumer Protection from Unfair Trading Regulations (UK), EU Directive on Unfair Commercial Practices. Penalties include fines and criminal prosecution.',
+      ref:'FTC Act § 5 (US) · CPRs 2008 (UK)',
+      steps:['Screenshot or photograph the false advertisement','File a complaint with your consumer protection authority','Report to the advertising standards body','You may also be entitled to civil damages'],
+      hotline:'🇺🇸 US: FTC 1-877-382-4357 | 🇬🇧 UK: Advertising Standards Authority',
+      type_class:'illegal'
+    },
+  ],
+  family:[
+    {
+      type:'right',title:'Child support is a legal obligation',
+      verdict:'yes',verdictLabel:'Enforced by Law',
+      summary:'Non-custodial parents are legally required to pay child support. Courts can garnish wages, revoke licenses, and even imprison those who refuse to pay.',
+      detail:'US: Child Support Enforcement (Title IV-D) | UK: Child Maintenance Service | Canada: Federal Child Support Guidelines | Australia: Child Support Agency. Calculated based on income and time with child.',
+      ref:'Child Support Enforcement Act (US) · Child Support Act 1991 (UK)',
+      steps:['Apply through your country\'s child support enforcement agency','Gather income documentation for both parents','Attend mediation or court hearing for assessment','Enforcement actions available if the other parent refuses to pay'],
+      hotline:'🇺🇸 US: 1-800-252-8014 | 🇬🇧 UK: CMS 0800 171 2345',
+      type_class:'right'
+    },
+    {
+      type:'protect',title:'Domestic violence victims have legal protection orders',
+      verdict:'yes',verdictLabel:'Help is Available',
+      summary:'Courts can issue restraining orders (Protection Orders) that legally prohibit an abuser from contacting or approaching a victim. Violation is a criminal offense.',
+      detail:'Available in virtually every country. Types include emergency protective orders, temporary restraining orders, and permanent orders. Police can enforce violations immediately.',
+      ref:'Violence Against Women Act (US) · Domestic Abuse Act 2021 (UK)',
+      steps:['Contact police or a domestic violence hotline immediately if in danger','Apply for an emergency protection order at your local courthouse','Document incidents with dates, photos, and witness information','Seek a safe shelter while the order is processed'],
+      hotline:'🇺🇸 US: National DV Hotline 1-800-799-7233 | 🇬🇧 UK: National DV Helpline 0808 200 0247 | Global: findahelpline.com',
+      type_class:'protect'
+    },
+  ],
+  discrimination:[
+    {
+      type:'illegal',title:'Racial or religious discrimination is illegal',
+      verdict:'no',verdictLabel:'Strictly Illegal',
+      summary:'Discriminating against a person in employment, housing, education, or services based on race, color, ethnicity, or religion is illegal in most countries.',
+      detail:'US: Title VII, Fair Housing Act | UK: Equality Act 2010 | EU: Race Equality Directive | Canada: Canadian Human Rights Act | UN: Universal Declaration of Human Rights Art. 7.',
+      ref:'International human rights law plus domestic legislation',
+      steps:['Document the discriminatory act with details, dates, and witnesses','File a formal complaint with your employer or service provider','Report to the national equality or human rights commission','File a civil lawsuit — many lawyers take these on contingency'],
+      hotline:'🇺🇸 US: EEOC 1-800-669-4000 | 🇬🇧 UK: EHRC 0808 800 0082',
+      type_class:'illegal'
+    },
+  ],
+  immigration:[
+    {
+      type:'right',title:'Right to seek asylum',
+      verdict:'yes',verdictLabel:'International Right',
+      summary:'Under international law, any person fleeing persecution has the right to seek asylum in another country. This cannot be denied at the border without assessment.',
+      detail:'Protected under the 1951 Refugee Convention and its 1967 Protocol, signed by 149 countries. Countries cannot return asylum seekers to places where they face serious harm (non-refoulement principle).',
+      ref:'1951 Refugee Convention · UNHCR Guidelines',
+      steps:['Declare asylum intent as soon as you reach the country','Do not sign any documents you don\'t understand','Request an interpreter — this is your right','Contact UNHCR or a refugee legal service immediately'],
+      hotline:'UNHCR Global: unhcr.org | 🇺🇸 US: USCIS 1-800-375-5283 | 🇬🇧 UK: 0808 800 0631',
+      type_class:'right'
+    },
+  ],
+  debt:[
+    {
+      type:'illegal',title:'Debt collectors cannot threaten or harass you',
+      verdict:'no',verdictLabel:'That\'s Illegal Harassment',
+      summary:'Debt collectors cannot threaten violence, use obscene language, call repeatedly to harass, or make false statements. This is illegal in the US, UK, EU, Canada, and Australia.',
+      detail:'US: Fair Debt Collection Practices Act (FDCPA) | UK: FCA Consumer Credit sourcebook | Canada: Provincial consumer protection acts | Australia: ASIC debt collection guidelines.',
+      ref:'Fair Debt Collection Practices Act (US) · FCA Rules (UK)',
+      steps:['Tell them in writing to stop contacting you — they must legally comply','Document every call with date, time, and what was said','File a complaint with the CFPB (US) or FCA (UK)','Sue for damages — FDCPA allows up to $1,000 per violation'],
+      hotline:'🇺🇸 US: CFPB 1-855-411-2372 | 🇬🇧 UK: FCA 0800 111 6768',
+      type_class:'illegal'
+    },
+  ],
+  criminal:[
+    {
+      type:'right',title:'Right to remain silent during police questioning',
+      verdict:'yes',verdictLabel:'Fundamental Right',
+      summary:'You have the right to refuse to answer police questions (except giving your name in some jurisdictions). You cannot be punished for exercising this right.',
+      detail:'US: Miranda Rights (5th Amendment) | UK: Caution — "you do not have to say anything" | Canada: s.7 and s.11(c) Charter | Australia: Right to silence by state | Most countries have equivalent protections.',
+      ref:'Miranda v. Arizona (US) · Police and Criminal Evidence Act (UK)',
+      steps:['Clearly state "I am exercising my right to remain silent"','Do not answer questions without a lawyer present','Ask "Am I free to go?" — if yes, leave calmly','If arrested, state clearly that you want a lawyer before any questioning'],
+      hotline:'🇺🇸 US: ACLU 212-549-2500 | 🇬🇧 UK: Liberty 020 7403 3888',
+      type_class:'right'
+    },
+  ],
+  privacy:[
+    {
+      type:'right',title:'Right to access your personal data',
+      verdict:'yes',verdictLabel:'Data Privacy Right',
+      summary:'In many countries, you have the right to request a copy of all personal data that companies hold about you, and to have incorrect data corrected.',
+      detail:'EU/UK GDPR: Subject Access Request within 30 days, free of charge. California CCPA: Right to know and delete. Canada: PIPEDA. Australia: Privacy Act. Many more countries have similar laws.',
+      ref:'GDPR Article 15 (EU/UK) · CCPA (California) · PIPEDA (Canada)',
+      steps:['Submit a Subject Access Request (SAR) to the company in writing','Companies must respond within 30 days (GDPR) or 45 days (CCPA)','You can request deletion of data not needed for legal purposes','File a complaint with your data protection authority if refused'],
+      hotline:'🇬🇧 UK: ICO 0303 123 1113 | 🇺🇸 US: FTC | 🇪🇺 EU: Your national DPA',
+      type_class:'right'
+    },
+  ],
+  disability:[
+    {
+      type:'right',title:'Employers must make reasonable accommodations',
+      verdict:'yes',verdictLabel:'Protected by Law',
+      summary:'Employers are legally required to make reasonable adjustments to allow disabled employees or applicants to do their job, unless it causes undue hardship.',
+      detail:'US: Americans with Disabilities Act (ADA) | UK: Equality Act 2010 (reasonable adjustments duty) | Canada: Human Rights Code | Australia: Disability Discrimination Act.',
+      ref:'Americans with Disabilities Act · Equality Act 2010',
+      steps:['Make a written request to HR specifying the accommodation needed','Provide medical documentation if required','Employer must engage in an "interactive process" (US)','File an ADA/EEOC complaint if request is unreasonably denied'],
+      hotline:'🇺🇸 US: ADA National Network 1-800-949-4232 | 🇬🇧 UK: EHRC 0808 800 0082',
+      type_class:'right'
+    },
+  ],
+};
+
+/* ══════════════════════════════════ APP LOAD ══════════════════════════════════ */
+function loadApp(){
+  const loc=[APP.state,APP.country].filter(Boolean).join(', ');
+  document.getElementById('loc-badge').textContent='📍 '+loc;
+  document.getElementById('user-name-display').textContent=APP.user?APP.user.name:'';
+  buildNav();
+  showHome();
+}
+
+function buildNav(){
+  const nav=document.getElementById('nav-items');
+  nav.innerHTML=TOPICS.map(t=>`
+    <div class="nav-item" id="nav-${t.id}" onclick="showTopic('${t.id}')">
+      <span class="nav-icon">${t.icon}</span> ${t.name}
+    </div>`).join('');
+}
+
+function showHome(){
+  const mc=document.getElementById('main-content');
+  mc.innerHTML=`
+    <div class="topic-hero">
+      <h2>Welcome, ${APP.user?APP.user.name:'there'} 👋</h2>
+      <p>You're viewing laws for <strong style="color:var(--gold)">${[APP.state,APP.country].filter(Boolean).join(', ')}</strong> in <strong style="color:var(--gold)">${APP.lang||'English'}</strong>.<br/>
+      Select a topic from the left to see your rights. Remember: this is legal information, not legal advice.</p>
+    </div>
+    <div class="topic-grid">${TOPICS.map(t=>`
+      <div class="topic-card" onclick="showTopic('${t.id}')">
+        <div class="topic-card-icon">${t.icon}</div>
+        <div class="topic-card-name">${t.name}</div>
+        <div class="topic-card-count">${t.count}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function showTopic(id){
+  APP.topic=id;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.getElementById('nav-'+id);
+  if(ni) ni.classList.add('active');
+  const topic=TOPICS.find(t=>t.id===id);
+  const laws=LAWS[id]||[];
+  const mc=document.getElementById('main-content');
+  mc.innerHTML=`
+    <div class="topic-hero">
+      <h2>${topic.icon} ${topic.name}</h2>
+      <p>Your rights in <strong style="color:var(--gold)">${[APP.state,APP.country].filter(Boolean).join(', ')}</strong>. Tap any card to see full details, legal references, and action steps.</p>
+    </div>
+    ${laws.map((l,i)=>lawCard(l,id+'-'+i)).join('')}
+    <div class="ask-ai-btn" onclick="toggleAI('ai-chat-${id}')">
+      <span>🤖</span>
+      <div class="ask-ai-text">
+        <strong>Ask the AI Legal Assistant</strong>
+        <small>Describe your situation and get general guidance</small>
+      </div>
+    </div>
+    <div class="ai-chat-box" id="ai-chat-${id}">
+      <div class="ai-msgs" id="ai-msgs-${id}">
+        <div class="msg ai">Hello! I'm your AI legal guide. Describe your situation and I'll help you understand your rights. <em>(Note: this is general information, not formal legal advice.)</em></div>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-input-${id}" placeholder="e.g. My landlord changed my locks without notice…" onkeydown="if(event.key==='Enter')sendAI('${id}')"/>
+        <button class="ai-send" onclick="sendAI('${id}')">→</button>
+      </div>
+    </div>`;
+}
+
+function lawCard(l,uid){
+  const vClass={yes:'yes',no:'no',depends:'depends'}[l.verdict]||'depends';
+  const vIcon={yes:'✅',no:'🚫',depends:'⚠️'}[l.verdict]||'⚠️';
+  return `
+  <div class="law-card ${l.type_class}" id="lc-${uid}" onclick="toggleCard('lc-${uid}')">
+    <div class="law-card-header">
+      <div class="law-card-title">${l.title}</div>
+      <div class="verdict ${vClass}">${vIcon} ${l.verdictLabel}</div>
+    </div>
+    <div class="law-card-body">${l.summary}</div>
+    <div class="law-card-detail">
+      <p style="font-size:14px;color:rgba(255,255,255,0.7);line-height:1.8;margin-bottom:12px">${l.detail}</p>
+      <div class="law-ref">📋 ${l.ref}</div>
+      <div class="action-steps">
+        <h4>🎯 What To Do</h4>
+        ${l.steps.map((s,i)=>`<div class="step-item"><div class="step-num-circle">${i+1}</div><span>${s}</span></div>`).join('')}
+      </div>
+      <div class="hotline-box"><strong>📞 Help Lines</strong>${l.hotline}</div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('expanded');
+}
+
+function toggleAI(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+/* ══════════════════════════════════ AI CHAT ══════════════════════════════════ */
+async function sendAI(topicId){
+  const input=document.getElementById('ai-input-'+topicId);
+  const msgs=document.getElementById('ai-msgs-'+topicId);
+  const q=input.value.trim();
+  if(!q) return;
+  input.value='';
+  msgs.innerHTML+=`<div class="msg user">${q}</div>`;
+  msgs.innerHTML+=`<div class="msg ai loading" id="ai-thinking">⏳ Thinking…</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const context=`You are a helpful legal information assistant for LegalAid Hub. The user is in: ${[APP.state,APP.country].filter(Boolean).join(', ')}. Topic: ${APP.topic}. 
+Always clarify this is general information not legal advice. Be helpful, clear, and compassionate. Keep response under 180 words.`;
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        system:context,
+        messages:[{role:'user',content:q}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||'I couldn\'t generate a response. Please try again.';
+    document.getElementById('ai-thinking').remove();
+    msgs.innerHTML+=`<div class="msg ai">${reply}</div>`;
+  } catch(e){
+    document.getElementById('ai-thinking').remove();
+    msgs.innerHTML+=`<div class="msg ai">⚠️ The AI assistant is currently unavailable. Please use the legal references and hotlines listed in each card above.</div>`;
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+</script>
+</body>
+</html>
